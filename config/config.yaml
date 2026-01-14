@@ -1,0 +1,155 @@
+# Configuration for Personal Health Ledger
+
+# Google Drive settings
+drive:
+  # Authentication method: "oauth2" or "service_account"
+  auth_method: "oauth2"
+  
+  # OAuth2 settings (for installed app flow)
+  oauth2:
+    credentials_path: "config/credentials.json"
+    token_path: "config/token.json"
+    scopes:
+      - "https://www.googleapis.com/auth/drive.readonly"
+  
+  # Service Account settings (alternative authentication)
+  service_account:
+    credentials_path: "config/service_account.json"
+    scopes:
+      - "https://www.googleapis.com/auth/drive.readonly"
+  
+  # Folder configuration
+  folder_name: "Health Sync Weight"
+  folder_id: null  # Optional: specify folder ID directly instead of searching by name
+  recursive: false  # Whether to search subfolders
+  
+  # Local cache settings
+  cache_dir: "data/raw"
+  index_file: "data/raw/index.json"
+
+# Data processing settings
+processing:
+  # Timezone for timestamp normalization
+  timezone: "America/Santiago"
+  
+  # Timestamp merge tolerance (seconds)
+  timestamp_tolerance_seconds: 60
+  
+  # Numeric comparison tolerance for float equality
+  numeric_tolerance: 0.001
+  
+  # Record ID generation
+  record_id:
+    algorithm: "sha256"  # Hash algorithm
+    timestamp_rounding_seconds: 60  # Round timestamp to nearest N seconds
+    include_fields:  # Fields to include in hash
+      - "timestamp"
+      - "weight_kg"
+      - "source_types"
+  
+  # Conflict resolution policy
+  conflict_resolution:
+    # Default source preference when conflicts occur: "csv", "fit", or null (keep both)
+    default_preference: null
+    # Field-specific preferences (overrides default)
+    field_preferences:
+      weight_kg: "csv"  # Example: prefer CSV for weight
+
+# CSV parsing settings
+csv:
+  # Encoding detection order
+  encodings:
+    - "utf-8"
+    - "latin-1"
+    - "iso-8859-1"
+  
+  # Delimiter detection (will try in order)
+  delimiters:
+    - ","
+    - ";"
+  
+  # Column name mappings (Spanish to English canonical)
+  column_mappings:
+    "Fecha": "date"
+    "Hora": "time"
+    "Peso": "weight_kg"
+    "Porcentaje de grasa corporal": "body_fat_pct"
+    "Masa de grasa corporal": "fat_mass_kg"
+    "Porcentaje libre de grasa": "fat_free_pct"
+    "Masa libre de grasa": "fat_free_mass_kg"
+    "Porcentaje de músculo esquelético": "skeletal_muscle_pct"
+    "Masa de músculo esquelético": "skeletal_muscle_mass_kg"
+    "Porcentaje de masa muscular": "muscle_pct"
+    "Masa muscular": "muscle_mass_kg"
+    "La masa ósea": "bone_mass_kg"
+    "Agua corporal total": "body_water"
+    "Tasa metabólica base": "bmr_kcal"
+    # English variants
+    "Date": "date"
+    "Time": "time"
+    "Weight": "weight_kg"
+    "Body Fat Percentage": "body_fat_pct"
+    "Fat Mass": "fat_mass_kg"
+    "Fat Free Percentage": "fat_free_pct"
+    "Fat Free Mass": "fat_free_mass_kg"
+    "Skeletal Muscle Percentage": "skeletal_muscle_pct"
+    "Skeletal Muscle Mass": "skeletal_muscle_mass_kg"
+    "Muscle Percentage": "muscle_pct"
+    "Muscle Mass": "muscle_mass_kg"
+    "Bone Mass": "bone_mass_kg"
+    "Body Water": "body_water"
+    "BMR": "bmr_kcal"
+
+# FIT parsing settings
+fit:
+  # Message types to extract
+  message_types:
+    - "weight_scale"
+  
+  # Field mappings (FIT field name -> canonical field name)
+  field_mappings:
+    "timestamp": "timestamp"
+    "weight": "weight_kg"
+    "percent_fat": "body_fat_pct"
+    "fat_mass": "fat_mass_kg"
+    "fat_free_mass": "fat_free_mass_kg"
+    "skeletal_muscle_mass": "skeletal_muscle_mass_kg"
+    "muscle_mass": "muscle_mass_kg"
+    "bone_mass": "bone_mass_kg"
+    "percent_hydration": "body_water"
+    "basal_met": "bmr_kcal"
+    "metabolic_age": "metabolic_age"
+    "visceral_fat_rating": "visceral_fat_rating"
+
+# Output settings
+output:
+  # Output directory
+  dir: "output"
+  
+  # Output files
+  files:
+    consolidated_csv: "weight_consolidated.csv"
+    consolidated_parquet: "weight_consolidated.parquet"
+    conflicts: "conflicts.csv"
+    comparison_summary: "comparison_summary.json"
+    ingestion_log: "ingestion_log.jsonl"
+  
+  # Output format options
+  formats:
+    - "csv"
+    - "parquet"
+  
+  # CSV serialization for complex types (lists, dicts)
+  csv_complex_serialization: "json"  # "json" or "pipe-separated"
+  
+  # Parquet options
+  parquet:
+    compression: "snappy"
+    engine: "pyarrow"
+
+# Logging settings
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "output/app.log"
+  console: true
